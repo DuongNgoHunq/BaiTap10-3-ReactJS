@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState,useMemo } from 'react';
 import { Members } from './Members';
 
 export const TransferMember = () => {
@@ -69,21 +69,74 @@ export const TransferMember = () => {
     }
 
     const handleSubmit = ()=>{
-      if(formData.classType === "java"){
-        javaMembers.push(formData);
-        setJavaMembers([...javaMembers]);
-      } else{
-        reactMembers.push(formData);
-        setReactMembers([...reactMembers]);
+      if(formData.isEdit){
+        const {originClassType, index} = formData;
+        if(originClassType !== formData.classType){
+          if(formData.classType === 'react'){
+            reactMembers.splice(index,1);
+            setReactMembers([...reactMembers]);
+            javaMembers.push(formData);
+            setJavaMembers([...javaMembers])
+          } else {
+            javaMembers.splice(index,1);
+            setJavaMembers([...javaMembers]);
+            reactMembers.push(formData);
+            setReactMembers([...reactMembers])
+          }
+        } else {
+          if(formData.classType === 'react'){
+            javaMembers[index] = formData;
+            setJavaMembers([...javaMembers]);
+          } else {
+            reactMembers[index] = formData;
+            setReactMembers([...reactMembers]);
+          }
+        }
+      } else {
+        if(formData.classType === "java"){
+          javaMembers.push(formData);
+          setJavaMembers([...javaMembers]);
+        } else{
+          reactMembers.push(formData);
+          setReactMembers([...reactMembers]);
+        }
+        setFormData({
+          name:"",
+          age:"",
+          classType:""
+        })
       }
-      setFormData({
-        name:"",
-        age:"",
-        classType:""
-      })
+      
     }
     
+    const handleEditReact=(index)=>{
+      setFormData({
+        ...reactMembers[index],
+        isEdit: true,
+        index: index,
+        originClassType: reactMembers[index].classType,
+      })
+      inputNameRef.current.focus();
 
+    }
+    const handleEditJava=(index)=>{
+       setFormData({
+        ...javaMembers[index],
+        isEdit: true,
+        index: index,
+        originClassType: javaMembers[index].classType,
+      })
+      inputNameRef.current.focus();
+    }
+    
+    const handleDeleteJava=(index)=>{
+      javaMembers.splice(index,1);
+      setJavaMembers([...javaMembers])
+    }
+    const handleDeleteReact=(index)=>{
+      reactMembers.splice(index,1);
+      setReactMembers([...reactMembers])
+    }
     const handleSort=()=>{
       const sortJavaMember=[...javaMembers].sort((a,b)=>{
         return a.age-b.age;
@@ -94,8 +147,18 @@ export const TransferMember = () => {
       setJavaMembers([...sortJavaMember]);
       setReactMembers([...sortReactMember]);
     }
+    const inputNameRef = useRef();
 
     const [searchValue, setSearchValue] = useState("")
+    const getUsers = (list)=>{
+      let res = [...list];
+      if (searchValue){
+        res = res.filter((el)=>el.name.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase()))
+      }
+      return res;
+    }
+    const reactMembersToRender = useMemo(() => getUsers(reactMembers), [reactMembers]);
+    const javaMembersToRender = useMemo(() => getUsers(javaMembers), [javaMembers]);
       return (
       <div>
         <h2>Search by name:</h2>
@@ -105,43 +168,26 @@ export const TransferMember = () => {
           value={searchValue}
           onChange={(e)=>{setSearchValue(e.target.value);}}
         />
-        <br/>
-        <br/>
-        <lable>  Sắp xếp</lable>
-        <button onClick={()=>handleSort()}>Sort</button> 
+        
         <h1>List member of React Class</h1>
         {
-          reactMembers.length>0? reactMembers.filter((user)=>{
-            if (searchValue ==""){
-              return user;
-            }
-            else if (user.name.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase())){
-              return user;
-            }
-          }).map((user, index)=>{
-            return <Members name={user.name} age={user.age} key={index} handleTransfer={()=>transferReactToJavaMember(index)}/>
+          reactMembers.length>0? getUsers(reactMembers).map((user, index)=>{
+            return <Members name={user.name} age={user.age} key={index} handleTransfer={()=>transferReactToJavaMember(index)} handleEdit={()=>handleEditReact(index)} handleDelete={()=>handleDeleteReact(index)}/>
           }):"Empty"
         }
         <h1>List member of Java Class</h1>
         {
-          javaMembers.length>0? javaMembers.filter((user)=>{
-            if (searchValue ==""){
-              return user;
-            }
-            else if (user.name.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase())){
-              return user;
-            }
-          }).map((user, index)=>{
-            return <Members name={user.name} age={user.age} key={index} handleTransfer={()=>transferJavaToReactMember(index)}/>
+          javaMembers.length>0? getUsers(javaMembers).map((user, index)=>{
+            return <Members name={user.name} age={user.age} key={index} handleTransfer={()=>transferJavaToReactMember(index)} handleEdit={()=>handleEditJava(index)} handleDelete={()=>handleDeleteJava(index)}/>
           }):"Empty"
         }
-       
+        <button onClick={()=>handleSort()}>Sort</button>
         <form onSubmit={(e)=>{
           e.preventDefault();
         }}>
-          <h1>Form Add Members</h1>
+          <h1>Form {formData.isEdit? "Edit" : "Add"} Members</h1>
           <label>Name: </label>
-          <input name="name" value={formData.name} onChange={(e)=>handleInput(e)}></input>
+          <input ref={inputNameRef} name="name" value={formData.name} onChange={(e)=>handleInput(e)}></input>
           {"-----"}
           <label>Age: </label>
           <input name="age" value={formData.age} onChange={(e)=>handleInput(e)}></input>
