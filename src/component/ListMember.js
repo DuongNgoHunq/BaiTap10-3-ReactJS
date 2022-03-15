@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState,useMemo } from 'react';
+import { FormAdd } from '../Nav/Route/FormAdd';
 import { Members } from './Members';
 
-export const TransferMember = () => {
+export const ListMember = () => {
     const [reactMembers, setReactMembers] = useState(()=>{
       return [{
           name: "Đinh Tuấn Anh",
@@ -185,17 +186,18 @@ export const TransferMember = () => {
         <form onSubmit={(e)=>{
           e.preventDefault();
         }}>
-          <h1>Form {formData.isEdit? "Edit" : "Add"} Members</h1>
+          {/* <h1>Form {formData.isEdit? "Edit" : "Add"} Members</h1>
           <label>Name: </label>
           <input ref={inputNameRef} name="name" value={formData.name} onChange={(e)=>handleInput(e)}></input>
-          {"-----"}
+          {"---"}
           <label>Age: </label>
           <input name="age" value={formData.age} onChange={(e)=>handleInput(e)}></input>
           <select name="classType" value={formData.classType} onChange={(e)=>handleInput(e)}>
             <option value="react">React</option>
             <option value="java">Java</option>
           </select>
-          <button onClick={()=>handleSubmit()}>Submit</button>
+          <button onClick={()=>handleSubmit()}>Submit</button> */}
+          <FormAdd/>
         </form>
         
       </div>
